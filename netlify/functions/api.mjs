@@ -98,7 +98,7 @@ async function run(req, context, holder) {
       const posts = (await get('posts', [])).map((p) => ({
         id: p.id, notice: !!p.notice, nick: p.nick, title: p.title, text: p.text, ts: p.at,
         reply: p.reply ? { text: p.reply.text, ts: p.reply.at } : null }));
-      const news = (await get('news', [])).map((n) => ({ id: n.id, title: n.title, text: n.text, ts: n.at }));
+      const news = (await get('news', [])).map((n) => ({ id: n.id, notice: !!n.notice, title: n.title, text: n.text, ts: n.at }));
       const gallery = (await get('gallery', [])).map((g) => ({
         id: g.id, title: g.title, text: g.text, ts: g.at,
         files: g.files.map((f) => ({ kind: f.kind, name: f.name, url: '/.netlify/functions/api?a=file&k=' + f.key })) }));
@@ -233,8 +233,13 @@ async function run(req, context, holder) {
     case 'news_create': {
       needPost(); needAdmin(); const b = await readJson(); const title = str(b, 'title', 60), text = str(b, 'text', 2000);
       if (!title || !text) fail('제목과 내용을 모두 입력해주세요.');
-      const news = await get('news', []); news.unshift({ id: await nextId('news'), title, text, at: Date.now() });
+      const news = await get('news', []); news.unshift({ id: await nextId('news'), title, text, notice: !!b.notice, at: Date.now() });
       await put('news', news); return { ok: true };
+    }
+    case 'news_notice_set': {
+      needPost(); needAdmin(); const b = await readJson();
+      const news = await get('news', []); const n = news.find((x) => x.id === Number(b.id));
+      if (n) { n.notice = !!b.notice; await put('news', news); } return { ok: true };
     }
     case 'news_delete': {
       needPost(); needAdmin(); const b = await readJson();
