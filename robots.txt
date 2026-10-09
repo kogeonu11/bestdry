@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /netlify/
+Disallow: /.netlify/functions/
+Disallow: /package.json
+
+Sitemap: https://bestdry.co.kr/sitemap.xml
